@@ -901,6 +901,62 @@ function TaskDecisionModal({ task, onAccept, onDecline, onUploadProof, onViewPro
           </div>
         </div>
 
+        {/* ===== ACTION BUTTONS — RIGHT HERE, IMMEDIATELY VISIBLE ===== */}
+        {isPending && (
+          <div className="space-y-2.5">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
+              ⚡ Your Decision Required
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => { onClose(); onDecline(task); }}
+                className="p-4 rounded-2xl bg-white hover:bg-rose-50 border-2 border-slate-200 hover:border-rose-400 text-slate-700 hover:text-rose-700 font-bold transition shadow-xs flex flex-col items-center gap-1.5 group"
+              >
+                <div className="p-2 bg-rose-50 group-hover:bg-rose-100 rounded-xl text-rose-600">
+                  <XCircle className="w-6 h-6" />
+                </div>
+                <span className="font-extrabold text-sm">Deny</span>
+                <span className="text-[10px] font-normal text-slate-400 group-hover:text-rose-500">Provide mandatory reason</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { onAccept(task.task_id); }}
+                className="p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg flex flex-col items-center gap-1.5"
+              >
+                <div className="p-2 bg-emerald-500/30 rounded-xl">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <span className="font-extrabold text-sm">Accept</span>
+                <span className="text-[10px] font-normal text-emerald-100">Claim & Mark In Progress</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(isAccepted || isChangesRequested) && (
+          <div className="space-y-2">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">Your Next Action</div>
+            <div className="flex flex-wrap justify-between items-center gap-3">
+              <button
+                type="button"
+                onClick={() => { onClose(); onDecline(task); }}
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-300 hover:border-rose-300 text-xs font-semibold transition"
+              >
+                Deny / Return Task
+              </button>
+              <button
+                type="button"
+                onClick={() => { onClose(); onUploadProof(task); }}
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition flex items-center gap-2"
+              >
+                <FileUp className="w-4 h-4" />
+                <span>Upload Evidence Document</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Verbatim Transcript Quote */}
         <div>
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
@@ -951,80 +1007,8 @@ function TaskDecisionModal({ task, onAccept, onDecline, onUploadProof, onViewPro
           </div>
         )}
 
-        {/* DECISION ACTION BOX SECTION */}
+        {/* DECISION ACTION BOX SECTION — secondary actions for declined/verified/review states */}
         <div className="pt-2 border-t border-slate-100">
-          
-          {/* 1. If Pending: Clear Accept / Deny 2-Button Choice */}
-          {isPending && (
-            <div className="space-y-3">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 text-center">
-                Select Your Response Decision
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {/* Deny Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onDecline(task);
-                  }}
-                  className="p-3.5 rounded-2xl bg-white hover:bg-rose-50 border-2 border-slate-200 hover:border-rose-300 text-slate-700 hover:text-rose-700 text-xs font-bold transition shadow-xs flex flex-col items-center justify-center gap-1.5 group"
-                >
-                  <div className="p-2 bg-rose-50 group-hover:bg-rose-100 rounded-xl text-rose-600">
-                    <XCircle className="w-5 h-5" />
-                  </div>
-                  <span className="font-extrabold text-sm">Deny Deliverable</span>
-                  <span className="text-[10px] font-normal text-slate-400 group-hover:text-rose-600">Provide mandatory reason</span>
-                </button>
-
-                {/* Accept Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    onAccept(task.task_id);
-                  }}
-                  className="p-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-md flex flex-col items-center justify-center gap-1.5 group"
-                >
-                  <div className="p-2 bg-emerald-500/30 rounded-xl text-white">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <span className="font-extrabold text-sm">Accept Deliverable</span>
-                  <span className="text-[10px] font-normal text-emerald-100">Claim & Mark In Progress</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 2. If Accepted / In Progress: Option to Upload Evidence or Return */}
-          {(isAccepted || isChangesRequested) && (
-            <div className="space-y-3">
-              <div className="flex flex-wrap justify-between items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onDecline(task);
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-300 hover:border-rose-300 text-xs font-semibold transition"
-                >
-                  Deny / Return Task
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onUploadProof(task);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition flex items-center gap-2"
-                >
-                  <FileUp className="w-4 h-4" />
-                  <span>Upload Evidence Document & Advance</span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* 3. If Declined: Option to Reconsider & Accept */}
           {isDeclined && (
@@ -2478,13 +2462,12 @@ function UploadCompletionModal({ task, onComplete, onCancel }) {
   const fileInputRef = useRef(null);
 
   const SAMPLE_FILES = [
-    { name: "dynamodb_schema_v2.sql", size: "4.2 KB", note: "Schema definition with secondary indexes" },
-    { name: "auth_middleware_pr42.diff", size: "8.5 KB", note: "Validated session tokens and JWT signing" },
-    { name: "security_audit_report.pdf", size: "1.2 MB", note: "Penetration test findings and remediations" },
-    { name: "ui_component_tokens.json", size: "2.8 KB", note: "Exported light-theme color palette" }
+    { name: "dynamodb_schema_v2.sql", size: "4.2 KB", note: "Created partition keys & indices." },
+    { name: "light_dashboard_v1.fig", size: "12.8 MB", note: "Light theme layouts & component specs." },
+    { name: "soc2_ssl_audit_report.pdf", size: "1.4 MB", note: "Passed penetration tests." }
   ];
 
-  const handleFileChange = (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
       setFileName(file.name);
@@ -2492,31 +2475,21 @@ function UploadCompletionModal({ task, onComplete, onCancel }) {
     }
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      setFileName(file.name);
-      setFileSize((file.size / 1024).toFixed(1) + " KB");
-    }
-  };
-
-  const handleSelectSample = (sample) => {
+  const loadSampleFile = (sample) => {
     setFileName(sample.name);
     setFileSize(sample.size);
-    if (!note) setNote(sample.note);
+    setNote(sample.note);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const finalFileName = fileName.trim() || "completion_evidence_document.pdf";
-    const finalSize = fileSize || "2.5 KB";
-
+    if (!fileName.trim()) {
+      return alert("Please select or specify a completion evidence document.");
+    }
     onComplete({
-      name: finalFileName,
-      size: finalSize,
-      note: note.trim() || "Completed deliverable as committed.",
+      name: fileName.trim(),
+      size: fileSize || "3.5 KB",
+      note: note.trim() || "Work completed and verified.",
       fileUrl: urlLink.trim() || "#"
     });
   };
@@ -2526,127 +2499,111 @@ function UploadCompletionModal({ task, onComplete, onCancel }) {
       <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in fade-in zoom-in-95">
         
         {/* Header */}
-        <div className="flex items-center gap-3.5 mb-4 text-emerald-600">
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-            <FileUp className="w-6 h-6 text-emerald-600" />
+        <div className="flex items-center gap-3.5 mb-4 text-indigo-600">
+          <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+            <FileUp className="w-6 h-6 text-indigo-600" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Upload Task Evidence Document</h3>
-            <p className="text-xs text-slate-500">Provide verifiable documentation to submit for Organizer verification</p>
+            <h3 className="text-base font-bold text-slate-900">Upload Completion Evidence</h3>
+            <p className="text-xs text-slate-500">Provide proof artifacts for Organizer verification sign-off</p>
           </div>
         </div>
 
-        {/* Task Box */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-xs space-y-1.5">
-          <div className="font-bold text-slate-900 flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>{task.title}</span>
-          </div>
+        {/* Deliverable Info */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4 text-xs space-y-1">
+          <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Deliverable Title</div>
+          <div className="font-bold text-slate-900 text-sm">{task.title}</div>
           <div className="text-slate-500 text-[11px]">
-            Target Deadline: <strong className="text-slate-700">{task.deadline || "Next Release"}</strong>
+            Target Deadline: <strong className="text-slate-800">{task.deadline || "Next Release"}</strong>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           
-          {/* Drag & Drop or Browse Box */}
+          {/* File Drag Drop Dropzone */}
           <div>
-            <label className="block font-bold text-slate-800 mb-1 flex items-center gap-1">
-              <Paperclip className="w-3.5 h-3.5 text-emerald-600" /> Attach Evidence Document File *
-            </label>
-            
             <input
               type="file"
               ref={fileInputRef}
-              onChange={handleFileChange}
+              onChange={handleFileSelect}
               className="hidden"
-              id="proof-file-input"
+              id="evidence-file-input"
             />
-
-            <div
+            <label
+              htmlFor="evidence-file-input"
               onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
               onDragLeave={() => setIsDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              className={`p-5 rounded-xl border-2 border-dashed text-center cursor-pointer transition ${
-                isDragOver 
-                  ? 'border-emerald-500 bg-emerald-50/60' 
-                  : fileName 
-                  ? 'border-emerald-300 bg-emerald-50/40 text-slate-800' 
-                  : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400 text-slate-600'
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+                if (e.dataTransfer.files?.[0]) {
+                  setFileName(e.dataTransfer.files[0].name);
+                  setFileSize((e.dataTransfer.files[0].size / 1024).toFixed(1) + " KB");
+                }
+              }}
+              className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl cursor-pointer transition ${
+                isDragOver ? 'border-indigo-500 bg-indigo-50/70' : 'border-slate-300 bg-slate-50 hover:bg-slate-100/80 hover:border-indigo-400'
               }`}
             >
-              <Upload className={`w-7 h-7 mx-auto mb-2 ${fileName ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <Paperclip className="w-8 h-8 text-indigo-500 mb-2" />
               {fileName ? (
-                <div>
-                  <div className="font-bold text-slate-900 flex items-center justify-center gap-1.5">
-                    <FileCheck className="w-4 h-4 text-emerald-600" />
-                    <span>{fileName}</span>
-                  </div>
-                  <span className="text-[11px] text-emerald-700 font-mono mt-0.5 block">{fileSize} • Click to replace file</span>
+                <div className="text-center">
+                  <p className="font-bold text-slate-900">{fileName}</p>
+                  <p className="text-[10px] text-slate-500 font-mono mt-0.5">{fileSize} • Ready for Submission</p>
                 </div>
               ) : (
-                <div>
-                  <p className="font-bold text-slate-800">Click to browse or drag & drop evidence file</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Supports .pdf, .docx, .zip, .png, .sql, .md, .txt, .json</p>
+                <div className="text-center">
+                  <p className="font-bold text-slate-700">Click to Select or Drag & Drop File</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Supports SQL, PDF, Code, Zip, Images, Documents</p>
                 </div>
               )}
-            </div>
+            </label>
           </div>
 
-          {/* Quick Sample Files Selector */}
+          {/* Quick Preset Artifact Buttons */}
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-              Quick Sample Attachments
+              Quick Sample Evidence Attachments
             </span>
-            <div className="grid grid-cols-2 gap-2">
-              {SAMPLE_FILES.map((sample, idx) => (
+            <div className="flex flex-wrap gap-1.5">
+              {SAMPLE_FILES.map((sample, i) => (
                 <button
-                  key={idx}
+                  key={i}
                   type="button"
-                  onClick={() => handleSelectSample(sample)}
-                  className={`p-2 rounded-lg border text-left transition flex items-center gap-2 ${
-                    fileName === sample.name
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
-                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
-                  }`}
+                  onClick={() => loadSampleFile(sample)}
+                  className="text-[11px] bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 hover:border-indigo-300 rounded-lg px-2.5 py-1 text-left transition"
                 >
-                  <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <div className="truncate">
-                    <div className="truncate text-[11px]">{sample.name}</div>
-                    <div className="text-[9px] text-slate-400 font-mono">{sample.size}</div>
-                  </div>
+                  + {sample.name}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Work Summary / Notes */}
+          {/* Optional URL Link */}
           <div>
-            <label className="block font-bold text-slate-800 mb-1">
-              Completion Notes / Summary
+            <label className="block font-bold text-slate-700 mb-1">
+              Pull Request / Live Figma / Repo Link <span className="text-slate-400 font-normal">(Optional)</span>
             </label>
-            <textarea
-              rows={2}
-              placeholder="e.g. Implemented endpoints, passed unit test suites, ready for organizer verification..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-100 transition resize-none"
+            <input
+              type="url"
+              placeholder="https://github.com/company/repo/pull/104"
+              value={urlLink}
+              onChange={(e) => setUrlLink(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:border-indigo-600 focus:bg-white font-mono text-xs"
             />
           </div>
 
-          {/* Deliverable URL (Optional) */}
+          {/* Notes */}
           <div>
-            <label className="block font-bold text-slate-800 mb-1 flex items-center gap-1">
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              <span>Deliverable Link / PR URL <span className="text-slate-400 font-normal">(Optional)</span></span>
+            <label className="block font-bold text-slate-700 mb-1">
+              Completion Notes / Release Description
             </label>
-            <input
-              type="text"
-              placeholder="https://github.com/org/repo/pull/42"
-              value={urlLink}
-              onChange={(e) => setUrlLink(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white font-mono text-[11px]"
+            <textarea
+              rows={2}
+              placeholder="Describe what was done or key findings..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-indigo-600 focus:bg-white resize-none"
             />
           </div>
 
@@ -2660,10 +2617,10 @@ function UploadCompletionModal({ task, onComplete, onCancel }) {
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition flex items-center gap-1.5"
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition flex items-center gap-1.5"
             >
-              <CheckCheck className="w-4 h-4" />
-              <span>Upload Evidence & Submit for Verification</span>
+              <FileUp className="w-4 h-4" />
+              <span>Submit for Verification</span>
             </button>
           </div>
         </form>
@@ -2674,29 +2631,24 @@ function UploadCompletionModal({ task, onComplete, onCancel }) {
 }
 
 // ==========================================
-// VIEW PROOF MODAL (AUDIT CERTIFICATE)
+// VIEW PROOF DOCUMENT DETAILS MODAL
 // ==========================================
 function ViewProofModal({ task, onClose, showToast }) {
   const file = task.completion_file || {};
 
-  const handleDownloadMock = () => {
-    showToast(`Downloading verified deliverable: ${file.name}`, 'info');
-  };
-
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95">
+      <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 space-y-4">
         
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-xl ${task.status === 'VERIFIED' ? 'bg-emerald-50 border border-emerald-200 text-emerald-600' : 'bg-amber-50 border border-amber-200 text-amber-600'}`}>
-              {task.status === 'VERIFIED' ? <BadgeCheck className="w-5 h-5" /> : <FileCheck className="w-5 h-5" />}
+        {/* Header */}
+        <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+              <FileCheck className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
-                {task.status === 'VERIFIED' ? 'Organizer Verified Deliverable' : 'Submitted Evidence Document'}
-              </h3>
-              <p className="text-xs text-slate-500 font-mono">Immutable Consent Ledger Record</p>
+              <h3 className="text-base font-bold text-slate-900">Completion Evidence Document</h3>
+              <p className="text-xs text-slate-500 font-mono">Ledger Record ID: {task.task_id}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700">
@@ -2704,62 +2656,53 @@ function ViewProofModal({ task, onClose, showToast }) {
           </button>
         </div>
 
-        <div className="space-y-3.5 text-xs">
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-            <div className="text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-0.5">Commitment Title</div>
-            <div className="font-bold text-slate-900 text-sm">{task.title}</div>
-            <div className="text-[11px] text-slate-600 mt-1">
-              Completed by: <strong className="text-indigo-700">{task.assignee}</strong> ({task.assignee_email})
+        {/* File Card */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2 text-xs">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Document Name</span>
+            <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+              Verified Attachment
+            </span>
+          </div>
+          <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <FileCode className="w-4 h-4 text-indigo-600" />
+            <span>{file.name || 'deliverable_artifact.pdf'}</span>
+          </div>
+          <div className="text-slate-500 font-mono text-[11px] flex gap-4">
+            <span>Size: <strong>{file.size || '3.5 KB'}</strong></span>
+            <span>Uploaded: <strong>{file.uploaded_at || 'Recent'}</strong></span>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {file.note && (
+          <div className="space-y-1 text-xs">
+            <span className="font-bold text-slate-700 block">Completion Notes:</span>
+            <p className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 italic leading-relaxed">
+              "{file.note}"
+            </p>
+          </div>
+        )}
+
+        {/* Verification Status */}
+        {task.status === 'VERIFIED' && (
+          <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-3 text-xs text-emerald-950 flex items-center gap-2.5">
+            <BadgeCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div>
+              <div className="font-bold">Digitally Verified by {task.verified_by || 'Lead Organizer'}</div>
+              <div className="text-[10px] opacity-80 font-mono">Timestamp: {task.verified_at || 'Recent'}</div>
             </div>
           </div>
+        )}
 
-          {/* File Card */}
-          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FileText className="w-7 h-7 text-emerald-600" />
-              <div>
-                <div className="font-bold text-emerald-950 text-xs">{file.name || "completion_proof.pdf"}</div>
-                <div className="text-[11px] text-emerald-700 font-mono">
-                  {file.size || "3.2 KB"} • Uploaded {file.uploaded_at || task.completed_at || "Recent"}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleDownloadMock}
-              className="p-2 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs transition"
-              title="Download Attached Document"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
-
-          {file.note && (
-            <div className="bg-white border border-slate-200 rounded-xl p-3.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                Completion Note / Summary
-              </span>
-              <p className="text-slate-800 text-[11px] leading-relaxed">{file.note}</p>
-            </div>
-          )}
-
-          {task.verified_by && (
-            <div className="bg-emerald-100/50 border border-emerald-300 rounded-xl p-3 flex items-center gap-2 text-emerald-900">
-              <BadgeCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-              <div>
-                <div className="font-bold text-[11px]">Officially Verified & Signed by {task.verified_by}</div>
-                <div className="text-[10px] text-emerald-700 font-mono">{task.verified_at}</div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end pt-2">
-            <button
-              onClick={onClose}
-              className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
-            >
-              Close
-            </button>
-          </div>
+        {/* Close Button */}
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
+          >
+            Close
+          </button>
         </div>
 
       </div>
@@ -2768,695 +2711,425 @@ function ViewProofModal({ task, onClose, showToast }) {
 }
 
 // ==========================================
-// DELETE FILE CONFIRMATION MODAL (ORGANIZER ONLY)
+// DELETE FILE CONFIRMATION MODAL (ORGANIZER)
 // ==========================================
 function DeleteFileModal({ file, onConfirm, onCancel, tasksCount }) {
   const [deleteTasks, setDeleteTasks] = useState(true);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95">
-        <div className="flex items-center gap-3.5 mb-4 text-rose-600">
+      <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 space-y-4">
+        
+        <div className="flex items-center gap-3 text-rose-600">
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
             <Trash2 className="w-6 h-6 text-rose-600" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Delete Saved File</h3>
-            <p className="text-xs text-slate-500">Organizer administrative removal confirmation</p>
+            <h3 className="text-base font-bold text-slate-900">Delete Saved Transcript File?</h3>
+            <p className="text-xs text-slate-500">Organizer administrative deletion</p>
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-xs">
-          <div className="text-slate-900 font-bold mb-1 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-indigo-600" />
-            {file.title || file.fileName}
+        <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-950 space-y-1">
+          <div className="font-bold flex items-center gap-1.5">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>Target: {file.title || file.fileName}</span>
           </div>
-          <div className="text-[11px] text-slate-500 font-mono">
-            File: {file.fileName || 'transcript.txt'} | Date: {file.date}
-          </div>
-          {tasksCount > 0 && (
-            <div className="mt-2.5 text-amber-800 bg-amber-50 border border-amber-200 p-2 rounded-lg text-[11px]">
-              ⚠️ This file has <strong>{tasksCount}</strong> extracted commitment deliverables linked to it.
-            </div>
-          )}
+          <p className="text-[11px] text-rose-800">
+            This action will remove the transcript document from the saved files directory.
+          </p>
         </div>
 
         {tasksCount > 0 && (
-          <label className="flex items-center gap-2.5 text-xs text-slate-700 mb-5 cursor-pointer select-none">
-            <input 
-              type="checkbox" 
-              checked={deleteTasks} 
-              onChange={(e) => setDeleteTasks(e.target.checked)} 
-              className="rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+          <label className="flex items-center gap-2.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={deleteTasks}
+              onChange={(e) => setDeleteTasks(e.target.checked)}
+              className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
             />
-            <span>Also delete all {tasksCount} extracted deliverables associated with this file</span>
+            <span>Also delete all <strong>{tasksCount} linked commitments</strong> extracted from this file</span>
           </label>
         )}
 
-        <div className="flex justify-end gap-3 text-xs font-bold">
+        <div className="flex justify-end gap-3 pt-2 font-bold text-xs">
           <button
+            type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={() => onConfirm(deleteTasks)}
-            className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>Yes, Delete File</span>
+            Confirm Permanent Delete
           </button>
         </div>
+
       </div>
     </div>
   );
 }
 
 // ==========================================
-// DELETE EMPLOYEE MODAL (ORGANIZER ONLY)
+// DELETE EMPLOYEE MODAL (ORGANIZER)
 // ==========================================
 function DeleteEmployeeModal({ employee, onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95">
-        <div className="flex items-center gap-3.5 mb-4 text-rose-600">
+      <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 space-y-4">
+        
+        <div className="flex items-center gap-3 text-rose-600">
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
-            <UserCheck className="w-6 h-6 text-rose-600" />
+            <ShieldAlert className="w-6 h-6 text-rose-600" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Revoke Employee Credentials</h3>
-            <p className="text-xs text-slate-500">Remove employee from ledger directory</p>
+            <h3 className="text-base font-bold text-slate-900">Revoke Credentials?</h3>
+            <p className="text-xs text-slate-500">Remove employee login access</p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-600 mb-4 leading-relaxed">
-          Are you sure you want to revoke credentials for <strong className="text-slate-900">{employee.name}</strong> ({employee.email})? They will no longer be able to sign in with this password.
+        <p className="text-xs text-slate-600 leading-relaxed">
+          Are you sure you want to revoke login access for <strong>{employee.name}</strong> ({employee.email})? They will no longer be able to sign into the portal.
         </p>
 
-        <div className="flex justify-end gap-3 text-xs font-bold">
+        <div className="flex justify-end gap-3 pt-2 font-bold text-xs">
           <button
+            type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={onConfirm}
-            className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>Revoke Credentials</span>
+            Revoke Access
           </button>
         </div>
+
       </div>
     </div>
   );
 }
 
 // ==========================================
-// EMPLOYEE / ASSIGNEE WORKSPACE
-// - CLICKABLE TASKS OPENING DECISION BOX
-// - ACCEPT / DENY (WITH REASON)
-// - UPLOAD EVIDENCE DOCUMENT
-// - NO DELETE BUTTON FOR EMPLOYEES
+// EMPLOYEE WORKSPACE COMPONENT
 // ==========================================
-function EmployeeWorkspace({ 
-  currentUser, 
-  tasks, 
-  onTaskClick,
-  onAcceptTask, 
-  onDeclineTask, 
-  onUploadProof,
-  onViewProof,
-  showToast
-}) {
-  const [filterTab, setFilterTab] = useState('ALL');
-  const [activeFocusedTaskId, setActiveFocusedTaskId] = useState(null);
+function EmployeeWorkspace({ currentUser, tasks, onTaskClick, onAcceptTask, onDeclineTask, onUploadProof, onViewProof, showToast }) {
+  const [filter, setFilter] = useState('ALL');
 
-  const myTasks = tasks.filter(t => 
-    t.assignee?.toLowerCase() === currentUser.name?.toLowerCase() || 
-    t.assignee_email?.toLowerCase() === currentUser.email?.toLowerCase() ||
-    t.assignee?.toLowerCase() === currentUser.email.split('@')[0].toLowerCase()
-  );
+  // Match user tasks by email or first name
+  const userEmail = currentUser.email.toLowerCase();
+  const userName = (currentUser.name || '').toLowerCase();
 
-  // Status Counts
-  const pendingCount = myTasks.filter(t => t.status === 'PENDING_OWNER_SIGNATURE' || !t.status).length;
-  const inProgressCount = myTasks.filter(t => t.status === 'ACCEPTED' || t.status === 'CHANGES_REQUESTED').length;
-  const awaitingVerificationCount = myTasks.filter(t => t.status === 'PENDING_ORGANIZER_VERIFICATION').length;
-  const verifiedCount = myTasks.filter(t => t.status === 'VERIFIED').length;
-  const declinedCount = myTasks.filter(t => t.status === 'DECLINED').length;
-
-  // Active Next Task in sequence (pending or in progress)
-  const activeFocusTask = myTasks.find(t => 
-    t.task_id === activeFocusedTaskId
-  ) || myTasks.find(t => 
-    t.status === 'PENDING_OWNER_SIGNATURE' || !t.status || t.status === 'ACCEPTED' || t.status === 'CHANGES_REQUESTED'
-  ) || myTasks[0];
-
-  // Find next actionable task and switch focus
-  const handleSwitchToNextTask = () => {
-    const actionableTasks = myTasks.filter(t => 
-      t.status === 'PENDING_OWNER_SIGNATURE' || !t.status || t.status === 'ACCEPTED' || t.status === 'CHANGES_REQUESTED'
-    );
-    if (actionableTasks.length > 1) {
-      const currentIndex = actionableTasks.findIndex(t => t.task_id === activeFocusTask?.task_id);
-      const nextIndex = (currentIndex + 1) % actionableTasks.length;
-      const nextTask = actionableTasks[nextIndex];
-      setActiveFocusedTaskId(nextTask.task_id);
-      showToast(`Switched focus to: "${nextTask.title}"`, 'info');
-    } else {
-      showToast("No additional pending tasks in queue.", 'info');
-    }
-  };
+  const myTasks = tasks.filter(t => {
+    const tEmail = (t.assignee_email || '').toLowerCase();
+    const tName = (t.assignee || '').toLowerCase();
+    return tEmail === userEmail || (userName && tName.includes(userName));
+  });
 
   const filteredTasks = myTasks.filter(t => {
-    if (filterTab === 'PENDING') return t.status === 'PENDING_OWNER_SIGNATURE' || !t.status;
-    if (filterTab === 'IN_PROGRESS') return t.status === 'ACCEPTED' || t.status === 'CHANGES_REQUESTED';
-    if (filterTab === 'AWAITING_VERIFICATION') return t.status === 'PENDING_ORGANIZER_VERIFICATION';
-    if (filterTab === 'VERIFIED') return t.status === 'VERIFIED';
-    if (filterTab === 'DECLINED') return t.status === 'DECLINED';
+    if (filter === 'PENDING') return t.status === 'PENDING_OWNER_SIGNATURE' || !t.status;
+    if (filter === 'ACCEPTED') return t.status === 'ACCEPTED';
+    if (filter === 'REVIEW') return t.status === 'PENDING_ORGANIZER_VERIFICATION' || t.status === 'CHANGES_REQUESTED';
+    if (filter === 'VERIFIED') return t.status === 'VERIFIED';
+    if (filter === 'DECLINED') return t.status === 'DECLINED';
     return true;
   });
 
-  return (
-    <main className="w-full px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      {/* Left Column: Greeting & Status Metrics (4 Cols) */}
-      <div className="lg:col-span-4 space-y-6">
-        
-        {/* Profile Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-extrabold text-base shadow-xs">
-              {currentUser.name ? currentUser.name.charAt(0) : currentUser.email.charAt(0)}
-            </div>
-            <div>
-              <h2 className="text-base font-extrabold text-slate-900">
-                {currentUser.name || currentUser.email}
-              </h2>
-              <p className="text-xs text-slate-500 font-mono">{currentUser.email}</p>
-            </div>
-          </div>
+  const pendingCount = myTasks.filter(t => t.status === 'PENDING_OWNER_SIGNATURE' || !t.status).length;
+  const acceptedCount = myTasks.filter(t => t.status === 'ACCEPTED').length;
+  const verifiedCount = myTasks.filter(t => t.status === 'VERIFIED').length;
+  const declinedCount = myTasks.filter(t => t.status === 'DECLINED').length;
 
-          <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-            Click on any task to open its <strong>Decision Box</strong> to accept or deny ownership, upload completion evidence documents, or review verification status.
+  return (
+    <main className="w-full px-6 lg:px-8 py-6 space-y-6">
+      
+      {/* Top Welcome Banner */}
+      <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold uppercase">
+              Employee Portal
+            </span>
+            <span className="text-xs text-slate-300 font-mono">• Interactive Sign-off</span>
+          </div>
+          <h2 className="text-2xl font-extrabold tracking-tight">Welcome, {currentUser.name || currentUser.email}!</h2>
+          <p className="text-xs text-indigo-200/80 max-w-xl">
+            Click on any commitment card below to open the Decision Box. Accept or deny commitments, provide reasons, and upload evidence documents for Organizer verification.
           </p>
         </div>
 
-        {/* Status Metrics Cards (Interactive Filter Chips) */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Deliverables Workflow
-            </h3>
-            <button
-              onClick={() => setFilterTab('ALL')}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition ${
-                filterTab === 'ALL' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-              }`}
-            >
-              Show All ({myTasks.length})
-            </button>
+        {/* Quick Summary Badges */}
+        <div className="flex flex-wrap gap-2.5 shrink-0">
+          <div className="bg-white/10 backdrop-blur-xs border border-white/10 rounded-2xl px-4 py-2.5 text-center">
+            <div className="text-xl font-extrabold text-amber-300">{pendingCount}</div>
+            <div className="text-[10px] text-slate-300 uppercase font-bold">Pending</div>
           </div>
-
-          <div className="grid grid-cols-2 gap-2.5 text-xs">
-            {/* 1. Pending */}
-            <button
-              onClick={() => setFilterTab('PENDING')}
-              className={`p-3 rounded-xl border text-left transition ${
-                filterTab === 'PENDING'
-                  ? 'bg-amber-100/70 border-amber-400 ring-2 ring-amber-200'
-                  : 'bg-amber-50/80 border-amber-200 hover:bg-amber-100/50'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-amber-800 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" /> Pending Accept
-                </span>
-                <span className="text-amber-700 font-mono text-base font-extrabold">{pendingCount}</span>
-              </div>
-              <p className="text-[10px] text-amber-700">Click to accept/deny</p>
-            </button>
-
-            {/* 2. In Progress / Accepted */}
-            <button
-              onClick={() => setFilterTab('IN_PROGRESS')}
-              className={`p-3 rounded-xl border text-left transition ${
-                filterTab === 'IN_PROGRESS'
-                  ? 'bg-blue-100/70 border-blue-400 ring-2 ring-blue-200'
-                  : 'bg-blue-50/80 border-blue-200 hover:bg-blue-100/50'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-blue-800 flex items-center gap-1">
-                  <PlayCircle className="w-3.5 h-3.5" /> In Progress
-                </span>
-                <span className="text-blue-700 font-mono text-base font-extrabold">{inProgressCount}</span>
-              </div>
-              <p className="text-[10px] text-blue-700">Accepted & active</p>
-            </button>
-
-            {/* 3. Awaiting Organizer Verification */}
-            <button
-              onClick={() => setFilterTab('AWAITING_VERIFICATION')}
-              className={`p-3 rounded-xl border text-left transition ${
-                filterTab === 'AWAITING_VERIFICATION'
-                  ? 'bg-purple-100/70 border-purple-400 ring-2 ring-purple-200'
-                  : 'bg-purple-50/80 border-purple-200 hover:bg-purple-100/50'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-purple-800 flex items-center gap-1">
-                  <Stamp className="w-3.5 h-3.5" /> Under Review
-                </span>
-                <span className="text-purple-700 font-mono text-base font-extrabold">{awaitingVerificationCount}</span>
-              </div>
-              <p className="text-[10px] text-purple-700">Evidence uploaded</p>
-            </button>
-
-            {/* 4. Verified & Certified */}
-            <button
-              onClick={() => setFilterTab('VERIFIED')}
-              className={`p-3 rounded-xl border text-left transition ${
-                filterTab === 'VERIFIED'
-                  ? 'bg-emerald-100/70 border-emerald-400 ring-2 ring-emerald-200'
-                  : 'bg-emerald-50/80 border-emerald-200 hover:bg-emerald-100/50'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
-                  <BadgeCheck className="w-3.5 h-3.5" /> Verified
-                </span>
-                <span className="text-emerald-700 font-mono text-base font-extrabold">{verifiedCount}</span>
-              </div>
-              <p className="text-[10px] text-emerald-700">Signed by Organizer</p>
-            </button>
+          <div className="bg-white/10 backdrop-blur-xs border border-white/10 rounded-2xl px-4 py-2.5 text-center">
+            <div className="text-xl font-extrabold text-blue-300">{acceptedCount}</div>
+            <div className="text-[10px] text-slate-300 uppercase font-bold">In Progress</div>
           </div>
+          <div className="bg-white/10 backdrop-blur-xs border border-white/10 rounded-2xl px-4 py-2.5 text-center">
+            <div className="text-xl font-extrabold text-emerald-300">{verifiedCount}</div>
+            <div className="text-[10px] text-slate-300 uppercase font-bold">Verified</div>
+          </div>
+        </div>
+      </div>
 
-          {/* Declined Chip */}
-          {declinedCount > 0 && (
-            <button
-              onClick={() => setFilterTab('DECLINED')}
-              className={`w-full p-2.5 rounded-xl border text-left transition flex items-center justify-between ${
-                filterTab === 'DECLINED'
-                  ? 'bg-rose-100 border-rose-300 ring-2 ring-rose-200'
-                  : 'bg-rose-50/80 border-rose-200 hover:bg-rose-100/50'
-              }`}
-            >
-              <span className="text-[11px] font-bold text-rose-800 flex items-center gap-1.5">
-                <XCircle className="w-3.5 h-3.5 text-rose-600" /> Declined Deliverables ({declinedCount})
-              </span>
-              <span className="text-[10px] text-rose-600 font-semibold">View Reasons</span>
-            </button>
+      {/* Filter Tabs & Instructional Note */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <button
+            onClick={() => setFilter('ALL')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition ${
+              filter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            All Assigned ({myTasks.length})
+          </button>
+          <button
+            onClick={() => setFilter('PENDING')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition ${
+              filter === 'PENDING' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-amber-800 hover:bg-amber-100'
+            }`}
+          >
+            Pending Decision ({pendingCount})
+          </button>
+          <button
+            onClick={() => setFilter('ACCEPTED')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition ${
+              filter === 'ACCEPTED' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-blue-800 hover:bg-blue-100'
+            }`}
+          >
+            In Progress ({acceptedCount})
+          </button>
+          <button
+            onClick={() => setFilter('VERIFIED')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition ${
+              filter === 'VERIFIED' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-emerald-800 hover:bg-emerald-100'
+            }`}
+          >
+            Verified ({verifiedCount})
+          </button>
+          <button
+            onClick={() => setFilter('DECLINED')}
+            className={`px-3.5 py-2 rounded-xl font-bold transition ${
+              filter === 'DECLINED' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-rose-800 hover:bg-rose-100'
+            }`}
+          >
+            Declined ({declinedCount})
+          </button>
+        </div>
+
+        <div className="text-xs text-indigo-700 font-medium flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl">
+          <MousePointerClick className="w-4 h-4 text-indigo-600 shrink-0" />
+          <span>Click any card to open <strong>Decision Box</strong></span>
+        </div>
+      </div>
+
+      {/* CLICKABLE TASK CARDS GRID */}
+      {filteredTasks.length === 0 ? (
+        <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-16 text-center text-slate-400 text-xs shadow-xs space-y-2">
+          <CheckCircle2 className="w-10 h-10 mx-auto text-slate-300" />
+          <h3 className="text-sm font-bold text-slate-700">No deliverables found for this view</h3>
+          <p className="text-slate-500">Log in as another employee or switch filters above.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredTasks.map((t) => (
+            <EmployeeTaskCard 
+              key={t.task_id}
+              task={t}
+              onCardClick={() => onTaskClick(t)}
+              onAccept={() => onAcceptTask(t.task_id)}
+              onDecline={() => onDeclineTask(t)}
+              onUploadProof={() => onUploadProof(t)}
+              onViewProof={() => onViewProof(t)}
+            />
+          ))}
+        </div>
+      )}
+
+    </main>
+  );
+}
+
+// ==========================================
+// EMPLOYEE CLICKABLE TASK CARD
+// ==========================================
+function EmployeeTaskCard({ task, onCardClick, onAccept, onDecline, onUploadProof, onViewProof }) {
+  const isPending = task.status === 'PENDING_OWNER_SIGNATURE' || !task.status;
+  const isAccepted = task.status === 'ACCEPTED';
+  const isAwaitingVerification = task.status === 'PENDING_ORGANIZER_VERIFICATION';
+  const isChangesRequested = task.status === 'CHANGES_REQUESTED';
+  const isVerified = task.status === 'VERIFIED';
+  const isDeclined = task.status === 'DECLINED';
+
+  return (
+    <div 
+      onClick={onCardClick}
+      className={`group bg-white border-2 rounded-2xl p-5 text-xs shadow-xs hover:shadow-xl transition-all cursor-pointer relative flex flex-col justify-between space-y-4 ${
+        isPending 
+          ? 'border-amber-300/80 hover:border-amber-400 bg-amber-50/10' 
+          : isAccepted 
+          ? 'border-blue-300/80 hover:border-blue-400' 
+          : isVerified 
+          ? 'border-emerald-300/80 hover:border-emerald-400 bg-emerald-50/10' 
+          : isAwaitingVerification
+          ? 'border-purple-300/80 hover:border-purple-400 bg-purple-50/10'
+          : isChangesRequested
+          ? 'border-orange-300/80 hover:border-orange-400 bg-orange-50/10'
+          : 'border-rose-200 hover:border-rose-300 bg-rose-50/10'
+      }`}
+    >
+      
+      {/* Top Header & Status Badge */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-start gap-2">
+          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+            ID: {task.task_id.substring(0, 10)}
+          </span>
+
+          {/* Status Badge */}
+          {isVerified && (
+            <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+              <BadgeCheck className="w-3 h-3 text-emerald-600" /> Verified
+            </span>
+          )}
+          {isAwaitingVerification && (
+            <span className="bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1 animate-pulse-subtle">
+              <Stamp className="w-3 h-3 text-purple-700" /> Under Review
+            </span>
+          )}
+          {isChangesRequested && (
+            <span className="bg-orange-100 text-orange-900 border border-orange-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 text-orange-600" /> Revision Needed
+            </span>
+          )}
+          {isAccepted && (
+            <span className="bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+              <PlayCircle className="w-3 h-3 text-blue-600" /> In Progress
+            </span>
+          )}
+          {isDeclined && (
+            <span className="bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+              <XCircle className="w-3 h-3 text-rose-600" /> Declined
+            </span>
+          )}
+          {isPending && (
+            <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+              <Clock className="w-3 h-3 text-amber-600" /> Action Needed
+            </span>
           )}
         </div>
 
-        {/* Deliverables Sequential Flow Guide */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs text-xs space-y-2.5">
-          <div className="font-bold text-slate-800 flex items-center gap-1.5">
-            <MousePointerClick className="w-4 h-4 text-emerald-600" /> Clickable Tasks Feature
-          </div>
-          <p className="text-slate-500 text-[11px] leading-relaxed">
-            Every deliverable in the list is clickable. Clicking opens the <strong>Task Decision Box</strong> popup allowing you to accept or deny directly with 1-click.
-          </p>
-        </div>
+        {/* Title */}
+        <h3 className="font-extrabold text-slate-900 text-sm leading-snug group-hover:text-indigo-600 transition">
+          {task.title}
+        </h3>
 
+        <div className="text-[11px] text-slate-500 font-medium">
+          Deadline: <strong className="text-slate-800">{task.deadline || "Next Release"}</strong>
+        </div>
       </div>
 
-      {/* Right Column: Next Up Task Spotlight + Deliverables List (8 Cols) */}
-      <div className="lg:col-span-8 space-y-6">
-        
-        {/* Next Up / Active Focus Task Spotlight Card */}
-        {activeFocusTask && (
-          <div 
-            onClick={() => onTaskClick(activeFocusTask)}
-            className="bg-gradient-to-r from-indigo-50/80 via-white to-emerald-50/50 border-2 border-indigo-200 hover:border-indigo-400 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-4 relative group"
+      {/* Quote Evidence */}
+      <blockquote className="bg-slate-50 border-l-2 border-indigo-500 p-2.5 rounded text-[11px] text-slate-700 font-mono shadow-2xs">
+        "{task.evidence}"
+      </blockquote>
+
+      {/* Decline Reason Callout */}
+      {isDeclined && task.rejection_reason && (
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-[11px] text-rose-900 space-y-0.5">
+          <div className="font-bold flex items-center gap-1 text-rose-800">
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Reason:
+          </div>
+          <p className="italic pl-4">"{task.rejection_reason}"</p>
+        </div>
+      )}
+
+      {/* Completion Artifact Pill */}
+      {task.completion_file && (
+        <div className="bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-[11px] flex items-center justify-between">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="font-bold truncate text-slate-800">{task.completion_file.name}</span>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewProof();
+            }}
+            className="text-[10px] font-bold text-indigo-600 hover:underline shrink-0"
           >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-indigo-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-600"></span>
-                </span>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-900">
-                  Current Task in Sequence
-                </span>
-              </div>
+            View Doc
+          </button>
+        </div>
+      )}
 
-              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                <button
-                  type="button"
-                  onClick={handleSwitchToNextTask}
-                  className="text-[11px] font-bold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 hover:border-indigo-300 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs"
-                >
-                  <FastForward className="w-3.5 h-3.5" />
-                  <span>Next Task in Queue</span>
-                </button>
-              </div>
-            </div>
+      {/* Card Action Buttons — Large & Prominent for Pending Tasks */}
+      <div onClick={(e) => e.stopPropagation()} className="space-y-2">
 
-            <div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-extrabold text-slate-900 mb-1 group-hover:text-indigo-600 transition">
-                  {activeFocusTask.title}
-                </h3>
-                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                  <MousePointerClick className="w-3 h-3" /> Click to open Decision Box
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Target Deadline: <strong className="text-slate-800">{activeFocusTask.deadline || "Next Release"}</strong>
-              </p>
-            </div>
-
-            <blockquote className="bg-white border-l-3 border-indigo-500 p-3 rounded-xl text-xs text-slate-700 font-mono shadow-2xs">
-              "{activeFocusTask.evidence}"
-            </blockquote>
-
-            {/* Actions for Active Focus Task */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center gap-2">
-                {activeFocusTask.status === 'VERIFIED' && (
-                  <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase">
-                    <BadgeCheck className="w-4 h-4 text-emerald-600" /> Organizer Verified
-                  </span>
-                )}
-                {activeFocusTask.status === 'PENDING_ORGANIZER_VERIFICATION' && (
-                  <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-900 border border-purple-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase">
-                    <Stamp className="w-4 h-4 text-purple-600" /> Awaiting Verification
-                  </span>
-                )}
-                {activeFocusTask.status === 'ACCEPTED' && (
-                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 border border-blue-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase">
-                    <PlayCircle className="w-4 h-4 text-blue-600" /> In Progress
-                  </span>
-                )}
-                {activeFocusTask.status === 'CHANGES_REQUESTED' && (
-                  <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-900 border border-orange-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase">
-                    <AlertTriangle className="w-4 h-4 text-orange-600" /> Revisions Requested
-                  </span>
-                )}
-                {(activeFocusTask.status === 'PENDING_OWNER_SIGNATURE' || !activeFocusTask.status) && (
-                  <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 border border-amber-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase">
-                    <Clock className="w-4 h-4 text-amber-600" /> Action Required (Accept / Deny)
-                  </span>
-                )}
-              </div>
-
-              {/* Action Buttons for Focus Task */}
-              <div className="flex flex-wrap gap-2.5">
-                {(activeFocusTask.status === 'PENDING_OWNER_SIGNATURE' || !activeFocusTask.status) && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => onDeclineTask(activeFocusTask)}
-                      className="px-4 py-2 rounded-xl bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-300 hover:border-rose-300 text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
-                    >
-                      <XCircle className="w-4 h-4 text-rose-600" />
-                      <span>Deny with Reason</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onAcceptTask(activeFocusTask.task_id)}
-                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Accept Task</span>
-                    </button>
-                  </>
-                )}
-
-                {(activeFocusTask.status === 'ACCEPTED' || activeFocusTask.status === 'CHANGES_REQUESTED') && (
-                  <button
-                    type="button"
-                    onClick={() => onUploadProof(activeFocusTask)}
-                    className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
-                  >
-                    <FileUp className="w-4 h-4" />
-                    <span>Upload Evidence Document & Advance</span>
-                  </button>
-                )}
-
-                {(activeFocusTask.status === 'PENDING_ORGANIZER_VERIFICATION' || activeFocusTask.status === 'VERIFIED') && (
-                  <button
-                    type="button"
-                    onClick={() => onViewProof(activeFocusTask)}
-                    className="px-4 py-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <FileCheck className="w-4 h-4 text-emerald-600" />
-                    <span>View Evidence Document</span>
-                  </button>
-                )}
-              </div>
-            </div>
+        {/* PENDING: Full-width Accept / Deny button row */}
+        {isPending && (
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onDecline}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border-2 border-rose-200 hover:border-rose-400 text-xs font-extrabold transition shadow-xs"
+            >
+              <XCircle className="w-4 h-4" />
+              Deny
+            </button>
+            <button
+              type="button"
+              onClick={onAccept}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition shadow-md"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Accept
+            </button>
           </div>
         )}
 
-        {/* Deliverables List Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
-          
-          <div className="flex justify-between items-center border-b border-slate-100 pb-3.5">
-            <div>
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-emerald-600" />
-                All Assigned Deliverables ({filteredTasks.length})
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Click any task card below to open the Decision Box (Accept / Deny)
-              </p>
-            </div>
-            <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full font-bold">
-              Clickable Tasks
+        {/* ACCEPTED or CHANGES REQUESTED: Full-width Upload Evidence button */}
+        {(isAccepted || isChangesRequested) && (
+          <button
+            type="button"
+            onClick={onUploadProof}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold transition shadow-md"
+          >
+            <FileUp className="w-4 h-4" />
+            Upload Evidence Document
+          </button>
+        )}
+
+        {/* Secondary link — open full Decision Box modal */}
+        <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-xs">
+          <button
+            type="button"
+            onClick={onCardClick}
+            className="text-slate-400 hover:text-indigo-600 font-semibold flex items-center gap-1 text-[11px] hover:underline"
+          >
+            <MousePointerClick className="w-3 h-3 text-indigo-400" />
+            <span>Open full Decision Box</span>
+          </button>
+          {isVerified && (
+            <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+              <BadgeCheck className="w-3.5 h-3.5" /> Verified
             </span>
-          </div>
-
-          {filteredTasks.length === 0 ? (
-            <div className="p-16 text-center border border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
-              <UserCheck className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-              <p className="font-bold text-slate-700 text-sm">No deliverables matching this filter.</p>
-              <p className="text-[11px] text-slate-400 mt-1">Switch filter tabs on the left or wait for new meeting extractions.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredTasks.map((t) => {
-                const isPending = t.status === 'PENDING_OWNER_SIGNATURE' || !t.status;
-                const isAccepted = t.status === 'ACCEPTED';
-                const isAwaitingVerification = t.status === 'PENDING_ORGANIZER_VERIFICATION';
-                const isChangesRequested = t.status === 'CHANGES_REQUESTED';
-                const isVerified = t.status === 'VERIFIED';
-                const isDeclined = t.status === 'DECLINED';
-                const isFocused = activeFocusTask?.task_id === t.task_id;
-
-                return (
-                  <div 
-                    key={t.task_id} 
-                    onClick={() => onTaskClick(t)}
-                    className={`rounded-2xl p-5 text-xs shadow-2xs space-y-3.5 transition border cursor-pointer group ${
-                      isFocused 
-                        ? 'bg-indigo-50/40 border-indigo-300 hover:border-indigo-400 hover:shadow-md' 
-                        : 'bg-slate-50/80 hover:bg-white border-slate-200 hover:border-indigo-300 hover:shadow-md'
-                    }`}
-                  >
-                    
-                    {/* Top Row: Title, Target & Badges (Clickable) */}
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-slate-900 text-sm group-hover:text-indigo-600 transition flex items-center gap-1.5">
-                            <span>{t.title}</span>
-                            <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition text-indigo-600" />
-                          </h4>
-                          {isFocused && (
-                            <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.2 rounded-md">
-                              Active Focus
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Target Deadline: <strong className="text-slate-800">{t.deadline || "Next Release"}</strong>
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        {isVerified && (
-                          <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                            <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Organizer Verified
-                          </span>
-                        )}
-                        {isAwaitingVerification && (
-                          <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                            <Stamp className="w-3.5 h-3.5 text-purple-600" /> Under Review
-                          </span>
-                        )}
-                        {isChangesRequested && (
-                          <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-900 border border-orange-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                            <AlertTriangle className="w-3.5 h-3.5 text-orange-600" /> Revision Needed
-                          </span>
-                        )}
-                        {isAccepted && (
-                          <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                            <PlayCircle className="w-3.5 h-3.5 text-blue-600" /> In Progress
-                          </span>
-                        )}
-                        {isDeclined && (
-                          <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                            <XCircle className="w-3.5 h-3.5 text-rose-600" /> Declined
-                          </span>
-                        )}
-                        {isPending && (
-                          <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                            <Clock className="w-3.5 h-3.5 text-amber-600" /> Click to Decide
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Verbatim Quote */}
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                        Verbatim Transcript Evidence Quote
-                      </span>
-                      <blockquote className="bg-white border-l-3 border-emerald-500 p-3 rounded-lg text-[11px] text-slate-800 font-mono shadow-2xs">
-                        "{t.evidence}"
-                      </blockquote>
-                    </div>
-
-                    {/* ORGANIZER REVISION FEEDBACK (If changes requested) */}
-                    {isChangesRequested && t.verification_feedback && (
-                      <div className="bg-orange-50 border border-orange-300 rounded-xl p-3 text-[11px] text-orange-950 space-y-1">
-                        <div className="font-bold flex items-center gap-1.5 text-orange-800">
-                          <AlertTriangle className="w-4 h-4 text-orange-600" />
-                          <span>Organizer Revision Notes:</span>
-                        </div>
-                        <p className="italic pl-5">"{t.verification_feedback}"</p>
-                      </div>
-                    )}
-
-                    {/* DECLINE REASON DISPLAY (If declined) */}
-                    {isDeclined && t.rejection_reason && (
-                      <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-[11px] text-rose-900 space-y-1">
-                        <div className="font-bold flex items-center gap-1.5 text-rose-800">
-                          <AlertTriangle className="w-4 h-4 text-rose-600" />
-                          <span>Recorded Reason for Declining:</span>
-                        </div>
-                        <p className="italic pl-5">"{t.rejection_reason}"</p>
-                        {t.declined_at && (
-                          <p className="text-[10px] text-rose-600 font-mono pl-5">Recorded on {t.declined_at}</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* COMPLETED EVIDENCE DOCUMENT DISPLAY (If uploaded or verified) */}
-                    {(isAwaitingVerification || isVerified) && t.completion_file && (
-                      <div className={`rounded-xl p-3.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${
-                        isVerified
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-                          : 'bg-purple-50/70 border-purple-200 text-purple-950'
-                      }`}>
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-2 bg-white rounded-lg border border-slate-200 text-emerald-600">
-                            <FileCheck className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                              <span>{t.completion_file.name}</span>
-                              <span className="text-[10px] font-mono text-emerald-700 bg-white px-1.5 py-0.2 rounded border border-emerald-200">
-                                {t.completion_file.size || "Evidence Doc"}
-                              </span>
-                            </div>
-                            <p className="text-[11px] opacity-90 mt-0.5">
-                              {t.completion_file.note || "Evidence document attached"}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            onClick={() => onViewProof(t)}
-                            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold transition flex items-center gap-1 text-[11px]"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            <span>View Evidence</span>
-                          </button>
-
-                          {!isVerified && (
-                            <button
-                              type="button"
-                              onClick={() => onUploadProof(t)}
-                              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition flex items-center gap-1 text-[11px]"
-                              title="Update document"
-                            >
-                              <FileUp className="w-3.5 h-3.5" />
-                              <span>Update</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* WORKFLOW ACTION BUTTONS IN TASK CARD */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200" onClick={(e) => e.stopPropagation()}>
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <MousePointerClick className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>Click card to open full decision box</span>
-                      </span>
-
-                      <div className="flex gap-2">
-                        {isPending && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => onDeclineTask(t)}
-                              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-300 hover:border-rose-300 text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
-                            >
-                              <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                              <span>Deny</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onAcceptTask(t.task_id)}
-                              className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Accept</span>
-                            </button>
-                          </>
-                        )}
-
-                        {(isAccepted || isChangesRequested) && (
-                          <button
-                            type="button"
-                            onClick={() => onUploadProof(t)}
-                            className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
-                          >
-                            <FileUp className="w-3.5 h-3.5" />
-                            <span>Upload Evidence</span>
-                          </button>
-                        )}
-
-                        {isDeclined && (
-                          <button
-                            type="button"
-                            onClick={() => onAcceptTask(t.task_id)}
-                            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold transition flex items-center gap-1.5"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Re-Accept</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-                );
-              })}
-            </div>
           )}
         </div>
       </div>
 
-    </main>
+    </div>
   );
 }
