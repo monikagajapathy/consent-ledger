@@ -556,8 +556,60 @@ export default function App() {
     }
   };
 
-  // Pending verification count for notification badge
-  const pendingVerificationList = tasks.filter(t => t.status === 'PENDING_ORGANIZER_VERIFICATION');
+  // Unified Organizer Notifications (Accept, Deny with reason, Delegate, Evidence Upload)
+  const organizerNotifications = tasks.reduce((acc, t) => {
+    if (t.status === 'PENDING_ORGANIZER_VERIFICATION') {
+      acc.push({
+        id: `notif-verify-${t.task_id}`,
+        type: 'VERIFY',
+        badge: 'Evidence Review Needed',
+        badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+        title: t.title,
+        assignee: t.assignee,
+        detail: `${t.assignee} uploaded proof "${t.completion_file?.name || 'evidence document'}"`,
+        time: t.completed_at || 'Recent',
+        task: t
+      });
+    } else if (t.status === 'DECLINED') {
+      acc.push({
+        id: `notif-decline-${t.task_id}`,
+        type: 'DECLINED',
+        badge: 'Denied by Employee',
+        badgeClass: 'bg-rose-100 text-rose-800 border-rose-300',
+        title: t.title,
+        assignee: t.assignee,
+        detail: `${t.assignee} denied deliverable. Reason: "${t.rejection_reason || 'No reason specified'}"`,
+        time: t.declined_at || 'Recent',
+        task: t
+      });
+    } else if (t.status === 'ACCEPTED') {
+      acc.push({
+        id: `notif-accept-${t.task_id}`,
+        type: 'ACCEPTED',
+        badge: 'Task Accepted',
+        badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
+        title: t.title,
+        assignee: t.assignee,
+        detail: `${t.assignee} accepted commitment (In Progress)`,
+        time: t.accepted_at || 'Recent',
+        task: t
+      });
+    }
+    if (t.delegated_from) {
+      acc.push({
+        id: `notif-delegate-${t.task_id}`,
+        type: 'DELEGATED',
+        badge: 'Task Delegated',
+        badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+        title: t.title,
+        assignee: t.assignee,
+        detail: `Reassigned from ${t.delegated_from} to ${t.assignee}`,
+        time: t.delegated_at || 'Recent',
+        task: t
+      });
+    }
+    return acc;
+  }, []);
 
   if (isAuthenticating) {
     return (
@@ -729,66 +781,73 @@ export default function App() {
           {/* User Controls & Organizer Notification Center */}
           <div className="flex items-center gap-3.5 text-xs">
             
-            {/* Live Verification Notification Bell for Organizer */}
+            {/* Live Employee Response & Activity Notification Bell for Organizer */}
             {currentUser.role === 'organizer' && (
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
                   className={`relative p-2 rounded-xl border transition ${
-                    pendingVerificationList.length > 0
-                      ? 'bg-amber-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-500/30'
+                    organizerNotifications.length > 0
+                      ? 'bg-indigo-500/20 border-indigo-400/40 text-indigo-300 hover:bg-indigo-500/30'
                       : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
                   }`}
-                  title="Deliverables Awaiting Verification"
+                  title="Employee Activity & Ledger Notifications"
                 >
-                  {pendingVerificationList.length > 0 ? (
-                    <BellRing className="w-4 h-4 animate-bounce-short" />
+                  {organizerNotifications.length > 0 ? (
+                    <BellRing className="w-4 h-4 text-amber-300 animate-bounce-short" />
                   ) : (
                     <Bell className="w-4 h-4" />
                   )}
-                  {pendingVerificationList.length > 0 && (
+                  {organizerNotifications.length > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-mono text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
-                      {pendingVerificationList.length}
+                      {organizerNotifications.length}
                     </span>
                   )}
                 </button>
 
                 {/* Notifications Dropdown Popup */}
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white text-slate-900 border border-slate-200 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-3">
+                  <div className="absolute right-0 mt-2 w-88 bg-white text-slate-900 border border-slate-200 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                       <span className="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-                        <Stamp className="w-3.5 h-3.5 text-indigo-600" />
-                        Verification Alerts ({pendingVerificationList.length})
+                        <Bell className="w-3.5 h-3.5 text-indigo-600" />
+                        Employee Ledger Alerts ({organizerNotifications.length})
                       </span>
                       <button onClick={() => setNotificationsOpen(false)} className="text-slate-400 hover:text-slate-600">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
 
-                    {pendingVerificationList.length === 0 ? (
-                      <p className="text-slate-400 text-xs text-center py-4">All deliverables verified! No pending reviews.</p>
+                    {organizerNotifications.length === 0 ? (
+                      <p className="text-slate-400 text-xs text-center py-4">No recent employee responses or ledger alerts.</p>
                     ) : (
-                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        {pendingVerificationList.map(task => (
-                          <div key={task.task_id} className="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 text-xs space-y-1">
-                            <div className="font-bold text-slate-900 truncate">{task.title}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">
-                              By {task.assignee} • {task.completion_file?.name}
+                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {organizerNotifications.map(notif => (
+                          <div key={notif.id} className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border ${notif.badgeClass}`}>
+                                {notif.badge}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">{notif.time}</span>
                             </div>
-                            <div className="pt-1 flex justify-end">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNotificationsOpen(false);
-                                  setTaskToVerify(task);
-                                }}
-                                className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition"
-                              >
-                                Review & Verify
-                              </button>
-                            </div>
+                            <div className="font-bold text-slate-900 truncate">{notif.title}</div>
+                            <p className="text-[11px] text-slate-600 leading-snug">{notif.detail}</p>
+                            
+                            {notif.type === 'VERIFY' && (
+                              <div className="pt-1 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNotificationsOpen(false);
+                                    setTaskToVerify(notif.task);
+                                  }}
+                                  className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition"
+                                >
+                                  Review & Verify
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -880,6 +939,7 @@ export default function App() {
 // CLICKABLE TASK DECISION BOX MODAL
 // ==========================================
 function TaskDecisionModal({ task, onAccept, onDecline, onDelegate, onUploadProof, onViewProof, onClose }) {
+  if (!task) return null;
   const statusUpper = (task.status || '').toUpperCase();
   const isPending = !task.status || 
     statusUpper === 'PENDING_OWNER_SIGNATURE' || 
@@ -977,7 +1037,10 @@ function TaskDecisionModal({ task, onAccept, onDecline, onDelegate, onUploadProo
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => { onClose(); onDecline(task); }}
+                onClick={() => {
+                  setTaskToDecline(task);
+                  onClose();
+                }}
                 className="p-4 rounded-2xl bg-white hover:bg-rose-50 border-2 border-slate-200 hover:border-rose-400 text-slate-700 hover:text-rose-700 font-bold transition shadow-xs flex flex-col items-center gap-1.5 group"
               >
                 <div className="p-2 bg-rose-50 group-hover:bg-rose-100 rounded-xl text-rose-600">
@@ -2490,7 +2553,8 @@ function OrganizerVerificationModal({ task, onVerify, onClose }) {
 // ==========================================
 // DECLINE TASK MODAL (MANDATORY PROPER REASON)
 // ==========================================
-function DeclineTaskModal({ task, onConfirm, onCancel }) {
+function DeclineTaskModal({ task, onConfirm, onDelegate, onCancel }) {
+  if (!task) return null;
   const [reason, setReason] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -2624,6 +2688,7 @@ function DeclineTaskModal({ task, onConfirm, onCancel }) {
 // DELEGATE / RE-ASSIGN TASK MODAL
 // ==========================================
 function DelegateTaskModal({ task, registeredAssignees, onConfirm, onCancel }) {
+  if (!task) return null;
   const [selectedAssignee, setSelectedAssignee] = useState(
     registeredAssignees.find(a => a.email.toLowerCase() !== (task.assignee_email || '').toLowerCase()) || registeredAssignees[0]
   );
