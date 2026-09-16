@@ -57,6 +57,7 @@ const API_BASE_URL = "https://2uf2qjak1i.execute-api.us-east-1.amazonaws.com";
 
 // Initial default meetings/transcripts
 const INITIAL_MEETINGS = [
+
   {
     id: "mtg-1",
     title: "Sprint Architecture & DynamoDB Sync",
@@ -419,18 +420,19 @@ export default function App() {
 
   // 2. Deny / Decline Task with Mandatory Reason
   const handleConfirmDecline = (taskId, reason) => {
+    const finalReason = (reason && reason.trim()) ? reason.trim() : "Declined by assignee";
     const timeStr = new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
     setTasks(prev => prev.map(t => t.task_id === taskId ? {
       ...t,
       status: 'DECLINED',
-      rejection_reason: reason,
+      rejection_reason: finalReason,
       declined_at: timeStr
     } : t));
 
     setDecisionModalTask(prev => prev && prev.task_id === taskId ? {
       ...prev,
       status: 'DECLINED',
-      rejection_reason: reason,
+      rejection_reason: finalReason,
       declined_at: timeStr
     } : prev);
 
@@ -441,7 +443,7 @@ export default function App() {
       fetch(`${API_BASE_URL}/sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task_id: taskId, action: 'DECLINE', reason }),
+        body: JSON.stringify({ task_id: taskId, action: 'DECLINE', reason: finalReason }),
       }).catch(e => console.warn(e));
     } catch (err) {
       console.warn("Sync failed, stored locally.");
@@ -1074,7 +1076,7 @@ function TaskDecisionModal({ task, onAccept, onDecline, onDelegate, onUploadProo
 
         {/* DECISION ACTION BOX SECTION — Delegation & Secondary Actions */}
         <div className="pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-3">
-          {onDelegate && (
+          {onDelegate && !isPending && (
             <button
               type="button"
               onClick={() => { onClose(); onDelegate(task); }}
@@ -2501,11 +2503,8 @@ function DeclineTaskModal({ task, onConfirm, onCancel }) {
 
   const handleDeclineSubmit = (e) => {
     e.preventDefault();
-    if (!reason.trim() || reason.trim().length < 5) {
-      setValidationError("Please specify a proper, detailed reason for declining this commitment (minimum 5 characters).");
-      return;
-    }
-    onConfirm(reason.trim());
+    const finalReason = reason.trim() || "Declined by assignee";
+    onConfirm(finalReason);
   };
 
   return (
@@ -2548,12 +2547,11 @@ function DeclineTaskModal({ task, onConfirm, onCancel }) {
           <div>
             <label className="block font-bold text-slate-800 mb-1 flex items-center justify-between">
               <span className="flex items-center gap-1">
-                <MessageSquare className="w-3.5 h-3.5 text-rose-600" /> Mandatory Reason for Declining *
+                <MessageSquare className="w-3.5 h-3.5 text-rose-600" /> Reason for Declining
               </span>
-              <span className="text-[10px] text-rose-600 font-mono font-semibold">Required</span>
+              <span className="text-[10px] text-slate-400 font-mono">Optional (Defaults to "Declined by assignee")</span>
             </label>
             <textarea
-              required
               rows={3}
               placeholder="Explain why you cannot accept this deliverable (e.g. scope conflict, missing prerequisites, assigned by error)..."
               value={reason}
@@ -3503,8 +3501,8 @@ function EmployeeTaskCard({ task, onCardClick, onAccept, onDecline, onDelegate, 
           </button>
         )}
 
-        {/* Delegate / Re-assign button for any non-verified task */}
-        {onDelegate && !isVerified && (
+        {/* Delegate / Re-assign button ONLY for tasks after decision (DECLINED, ACCEPTED, CHANGES_REQUESTED) */}
+        {onDelegate && !isPending && !isVerified && (
           <button
             type="button"
             onClick={onDelegate}
