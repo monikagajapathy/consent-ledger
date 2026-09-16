@@ -917,14 +917,13 @@ export default function App() {
             showToast={showToast}
           />
         ) : (
-          /* EmployeeWorkspace with CLICKABLE TASKS that open the Decision Box */
+          /* EmployeeWorkspace (Exclusive Accept/Deny and Evidence Upload - Delegation Restricted to Organizer) */
           <EmployeeWorkspace 
             currentUser={currentUser} 
             tasks={tasks} 
             onTaskClick={(task) => setDecisionModalTask(task)}
             onAcceptTask={handleAcceptTask}
             onDeclineTask={(task) => setTaskToDecline(task)}
-            onDelegateTask={(task) => setTaskToDelegate(task)}
             onUploadProof={(task) => setTaskToUpload(task)}
             onViewProof={(task) => setViewingProofTask(task)}
             showToast={showToast}
@@ -1137,19 +1136,8 @@ function TaskDecisionModal({ task, onAccept, onDecline, onDelegate, onUploadProo
           </div>
         )}
 
-        {/* DECISION ACTION BOX SECTION — Delegation & Secondary Actions */}
+        {/* DECISION ACTION BOX SECTION — Secondary Actions */}
         <div className="pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-3">
-          {onDelegate && !isPending && (
-            <button
-              type="button"
-              onClick={() => { onClose(); onDelegate(task); }}
-              className="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
-            >
-              <UserCheck className="w-4 h-4 text-indigo-600" />
-              <span>Delegate / Re-assign Work</span>
-            </button>
-          )}
-
           {isDeclined && (
             <button
               type="button"
@@ -1514,6 +1502,8 @@ function OrganizerWorkspace({
   onDelegateTask,
   showToast
 }) {
+  const [activeTab, setActiveTab] = useState('deliverables'); // 'deliverables' | 'delegation' | 'employees'
+  const [delegationFilter, setDelegationFilter] = useState('ALL');
   const [newTitle, setNewTitle] = useState('');
   const [newFileName, setNewFileName] = useState('');
   const [newTranscript, setNewTranscript] = useState('');
@@ -1696,494 +1686,654 @@ function OrganizerWorkspace({
   );
 
   return (
-    <main className="w-full px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main className="w-full px-6 lg:px-8 py-6 space-y-6">
       
-      {/* Column 1: Upload & Saved Files Management (4 Cols) */}
-      <div className="lg:col-span-4 space-y-6">
-        
-        {/* Organizer Pending Verification Alert Box (If any deliverables uploaded) */}
-        {pendingVerificationTasks.length > 0 && (
-          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs shadow-xs space-y-2.5 animate-pulse-subtle">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 font-bold text-amber-900">
-                <Stamp className="w-4 h-4 text-amber-700" />
-                <span>Verification Required ({pendingVerificationTasks.length})</span>
-              </div>
-              <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">
-                Action Needed
+      {/* ORGANIZER TABBED NAVIGATION HEADER */}
+      <div className="w-full bg-white border border-slate-200 rounded-2xl p-2 shadow-xs flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setActiveTab('deliverables')}
+            className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 border ${
+              activeTab === 'deliverables'
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Files & Extracted Deliverables</span>
+            <span className="ml-1 bg-indigo-500/30 text-white px-2 py-0.5 rounded-full text-[10px] font-mono">
+              {tasks.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('delegation')}
+            className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 border ${
+              activeTab === 'delegation'
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            <UserCheck className="w-4 h-4 text-amber-300" />
+            <span>Task Delegation & Re-assignment Console</span>
+            {tasks.filter(t => t.status === 'DECLINED').length > 0 ? (
+              <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full text-[10px] font-mono font-bold animate-pulse-subtle">
+                {tasks.filter(t => t.status === 'DECLINED').length} Declined Needs Action
               </span>
-            </div>
-            <p className="text-amber-800 text-[11px]">
-              Team members uploaded evidence documents that require your official review and verification sign-off.
-            </p>
-            <div className="space-y-1.5 pt-1">
-              {pendingVerificationTasks.map((pt) => (
-                <div key={pt.task_id} className="bg-white/90 border border-amber-200 rounded-lg p-2 flex items-center justify-between gap-2">
-                  <div className="truncate">
-                    <div className="font-bold text-slate-900 truncate">{pt.title}</div>
-                    <div className="text-[10px] text-slate-500 font-mono">By {pt.assignee} • {pt.completion_file?.name}</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onOpenVerification(pt)}
-                    className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-md transition flex items-center gap-1 shadow-2xs"
-                  >
-                    <Stamp className="w-3 h-3" />
-                    <span>Verify</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            ) : (
+              <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-[10px] font-mono">
+                Organizer Authority
+              </span>
+            )}
+          </button>
 
-        {/* Upload & Add File Box */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-          <div className="flex justify-between items-center mb-3.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <Upload className="w-4 h-4 text-indigo-600" /> Upload Transcript File
-            </h2>
-            <div className="flex gap-1.5">
-              <button 
-                type="button" 
-                onClick={() => loadPresetTranscript('dev')} 
-                className="text-[10px] bg-slate-50 hover:bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg border border-slate-200 hover:border-indigo-200 font-semibold transition"
-                title="Load Dev Sample"
-              >
-                + Dev Preset
-              </button>
-              <button 
-                type="button" 
-                onClick={() => loadPresetTranscript('security')} 
-                className="text-[10px] bg-slate-50 hover:bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg border border-slate-200 hover:border-emerald-200 font-semibold transition"
-                title="Load Security Sample"
-              >
-                + Security Preset
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-3 text-xs">
-            <input
-              type="text"
-              placeholder="Session / Document Title (e.g. Sprint Architecture Sync)"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white"
-            />
-
-            <div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".txt,.md,.json,.csv,.log"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload-input"
-              />
-              <label
-                htmlFor="file-upload-input"
-                className="flex items-center justify-center gap-2 w-full p-3 bg-slate-50 hover:bg-indigo-50/50 border border-dashed border-slate-300 hover:border-indigo-400 rounded-xl cursor-pointer text-slate-600 hover:text-indigo-700 transition text-xs font-medium"
-              >
-                <FolderOpen className="w-4 h-4 text-indigo-600" />
-                <span>{newFileName ? `Loaded: ${newFileName}` : "Browse & Upload File (.txt, .md, .json)"}</span>
-              </label>
-            </div>
-
-            <textarea
-              placeholder="Or paste raw meeting transcript verbatim text here..."
-              value={newTranscript}
-              onChange={(e) => setNewTranscript(e.target.value)}
-              className="w-full h-24 bg-slate-50 border border-slate-300 rounded-xl p-3 font-mono text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white resize-y"
-            />
-
-            <button
-              onClick={handleCreateMeeting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Save File to Ledger</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('employees')}
+            className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2 border ${
+              activeTab === 'employees'
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Team & Employee Credentials</span>
+            <span className="bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full text-[10px] font-mono">
+              {registeredAssignees.length}
+            </span>
+          </button>
         </div>
 
-        {/* Saved Files List with DELETION FEATURE (Organizer Authority) */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-              <HardDrive className="w-4 h-4 text-indigo-600" /> Saved Files ({meetings.length})
-            </h2>
-            <span className="text-[10px] text-slate-400 font-mono">Organizer Managed</span>
-          </div>
-
-          {meetings.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
-              <HardDrive className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-              <p className="font-semibold text-slate-600">No saved files found.</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Upload a transcript above.</p>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-              {meetings.map((m) => {
-                const isSelected = activeMeeting?.id === m.id;
-                const fileTaskCount = tasks.filter(t => t.meeting_id === m.id).length;
-
-                return (
-                  <div
-                    key={m.id}
-                    className={`group flex items-center justify-between p-3 rounded-xl border text-xs transition-all ${
-                      isSelected
-                        ? 'bg-indigo-50/70 border-indigo-300 shadow-2xs text-indigo-950 font-medium'
-                        : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveMeetingId(m.id)}
-                      className="flex-grow text-left pr-2 flex items-start gap-2.5 overflow-hidden"
-                    >
-                      <FileText className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`} />
-                      <div className="truncate">
-                        <div className="font-bold truncate text-slate-900">{m.title}</div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
-                          <span>{m.fileName || 'transcript.txt'}</span>
-                          <span>•</span>
-                          <span>{m.date}</span>
-                          {fileTaskCount > 0 && (
-                            <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded font-sans font-bold">
-                              {fileTaskCount} deliverables
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* Organizer Delete Saved File Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteFile(m);
-                      }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition shrink-0"
-                      title="Delete Saved File from Ledger"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        <div className="text-[11px] font-mono font-semibold text-slate-500 pr-2 hidden sm:block">
+          Project Lead Workspace • Exclusive Delegation Rights
         </div>
-
       </div>
 
-      {/* Column 2: Active File & AI Commitments Ledger (5 Cols) */}
-      <div className="lg:col-span-5 space-y-6">
-        {activeMeeting ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-5">
+      {/* TAB 1: FILES & EXTRACTED DELIVERABLES VIEW */}
+      {activeTab === 'deliverables' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+          
+          {/* Column 1: Upload & Saved Files Management (4 Cols) */}
+          <div className="lg:col-span-4 space-y-6">
             
-            {/* Header for Active File */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-indigo-600" /> {activeMeeting.title}
-                  </h3>
-                  <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full font-bold">
-                    {activeMeeting.status || 'Active'}
+            {/* Organizer Pending Verification Alert Box */}
+            {pendingVerificationTasks.length > 0 && (
+              <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 text-xs shadow-xs space-y-2.5 animate-pulse-subtle">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-amber-900">
+                    <Stamp className="w-4 h-4 text-amber-700" />
+                    <span>Verification Required ({pendingVerificationTasks.length})</span>
+                  </div>
+                  <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                    Action Needed
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1 font-mono">
-                  File: {activeMeeting.fileName} • {activeMeeting.date} • {activeMeeting.size || "1.5 KB"}
+                <p className="text-amber-800 text-[11px]">
+                  Team members uploaded evidence documents that require your official review and verification sign-off.
                 </p>
+                <div className="space-y-1.5 pt-1">
+                  {pendingVerificationTasks.map((pt) => (
+                    <div key={pt.task_id} className="bg-white/90 border border-amber-200 rounded-lg p-2 flex items-center justify-between gap-2">
+                      <div className="truncate">
+                        <div className="font-bold text-slate-900 truncate">{pt.title}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">By {pt.assignee} • {pt.completion_file?.name}</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onOpenVerification(pt)}
+                        className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-md transition flex items-center gap-1 shadow-2xs"
+                      >
+                        <Stamp className="w-3 h-3" />
+                        <span>Verify</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Upload & Add File Box */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+              <div className="flex justify-between items-center mb-3.5">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <Upload className="w-4 h-4 text-indigo-600" /> Upload Transcript File
+                </h2>
+                <div className="flex gap-1.5">
+                  <button 
+                    type="button" 
+                    onClick={() => loadPresetTranscript('dev')} 
+                    className="text-[10px] bg-slate-50 hover:bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg border border-slate-200 hover:border-indigo-200 font-semibold transition"
+                    title="Load Dev Sample"
+                  >
+                    + Dev Preset
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => loadPresetTranscript('security')} 
+                    className="text-[10px] bg-slate-50 hover:bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg border border-slate-200 hover:border-emerald-200 font-semibold transition"
+                    title="Load Security Sample"
+                  >
+                    + Security Preset
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleRunAiExtraction}
-                  disabled={analyzing}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5"
-                >
-                  {analyzing ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Extracting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Run AI Extraction</span>
-                    </>
-                  )}
-                </button>
+              <div className="space-y-3 text-xs">
+                <input
+                  type="text"
+                  placeholder="Session / Document Title (e.g. Sprint Architecture Sync)"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white"
+                />
 
-                {/* Organizer Delete Active File Button */}
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".txt,.md,.json,.csv,.log"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload-input"
+                  />
+                  <label
+                    htmlFor="file-upload-input"
+                    className="flex items-center justify-center gap-2 w-full p-3 bg-slate-50 hover:bg-indigo-50/50 border border-dashed border-slate-300 hover:border-indigo-400 rounded-xl cursor-pointer text-slate-600 hover:text-indigo-700 transition text-xs font-medium"
+                  >
+                    <FolderOpen className="w-4 h-4 text-indigo-600" />
+                    <span>{newFileName ? `Loaded: ${newFileName}` : "Browse & Upload File (.txt, .md, .json)"}</span>
+                  </label>
+                </div>
+
+                <textarea
+                  placeholder="Or paste raw meeting transcript verbatim text here..."
+                  value={newTranscript}
+                  onChange={(e) => setNewTranscript(e.target.value)}
+                  className="w-full h-24 bg-slate-50 border border-slate-300 rounded-xl p-3 font-mono text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white resize-y"
+                />
+
                 <button
-                  onClick={() => onDeleteFile(activeMeeting)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition"
-                  title="Delete this file"
+                  onClick={handleCreateMeeting}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
+                  <span>Save File to Ledger</span>
                 </button>
               </div>
             </div>
 
-            {/* Verbatim Transcript View */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Verbatim Transcript Text
-                </span>
-                <span className="text-[10px] font-mono text-slate-400">
-                  {activeMeeting.transcript.split(/\s+/).length} words
-                </span>
-              </div>
-              <textarea
-                readOnly
-                value={activeMeeting.transcript}
-                className="w-full h-32 p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-800 leading-relaxed focus:outline-none"
-              />
-            </div>
-
-            {/* Extracted Commitment Deliverables */}
-            <div>
+            {/* Saved Files List */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600" /> Extracted Deliverables ({visibleTasks.length})
-                </h4>
-                <span className="text-[11px] text-slate-400 font-medium">Organizer Verification Console</span>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <HardDrive className="w-4 h-4 text-indigo-600" /> Saved Files ({meetings.length})
+                </h2>
+                <span className="text-[10px] text-slate-400 font-mono">Organizer Managed</span>
               </div>
 
-              {visibleTasks.length === 0 ? (
-                <div className="border border-dashed border-slate-200 rounded-xl p-8 text-center text-slate-400 text-xs">
-                  <Sparkles className="w-6 h-6 mx-auto mb-2 text-indigo-400" />
-                  <p className="font-semibold text-slate-600">No deliverables extracted yet.</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Click "Run AI Extraction" to automatically detect commitments.</p>
+              {meetings.length === 0 ? (
+                <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
+                  <HardDrive className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                  <p className="font-semibold text-slate-600">No saved files found.</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Upload a transcript above.</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-                  {visibleTasks.map((t) => (
-                    <div key={t.task_id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs shadow-2xs space-y-2.5">
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="font-bold text-slate-900 text-sm">{t.title}</div>
-                        
-                        <div className="flex items-center gap-2 shrink-0">
-                          {/* Verification Status Badges */}
-                          {t.status === 'VERIFIED' && (
-                            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                              <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Organizer Verified
-                            </span>
-                          )}
-                          {t.status === 'PENDING_ORGANIZER_VERIFICATION' && (
-                            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase animate-pulse-subtle">
-                              <Stamp className="w-3.5 h-3.5 text-amber-700" /> Needs Verification
-                            </span>
-                          )}
-                          {t.status === 'CHANGES_REQUESTED' && (
-                            <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-800 border border-orange-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                              <AlertTriangle className="w-3.5 h-3.5 text-orange-600" /> Revision Requested
-                            </span>
-                          )}
-                          {t.status === 'ACCEPTED' && (
-                            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                              <PlayCircle className="w-3.5 h-3.5 text-blue-600" /> In Progress
-                            </span>
-                          )}
-                          {t.status === 'DECLINED' && (
-                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                              <XCircle className="w-3.5 h-3.5 text-rose-600" /> Declined
-                            </span>
-                          )}
-                          {(t.status === 'PENDING_OWNER_SIGNATURE' || !t.status) && (
-                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
-                              <Clock className="w-3.5 h-3.5 text-slate-500" /> Pending Accept
-                            </span>
-                          )}
+                <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                  {meetings.map((m) => {
+                    const isSelected = activeMeeting?.id === m.id;
+                    const fileTaskCount = tasks.filter(t => t.meeting_id === m.id).length;
 
-                          {/* Organizer Delegate / Re-assign Deliverable Button */}
-                          {onDelegateTask && (
-                            <button
-                              type="button"
-                              onClick={() => onDelegateTask(t)}
-                              className="px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 hover:border-indigo-300 transition text-[10px] font-bold flex items-center gap-1"
-                              title="Delegate / Re-assign Deliverable to another employee"
-                            >
-                              <UserCheck className="w-3 h-3 text-indigo-600" />
-                              <span>Delegate</span>
-                            </button>
-                          )}
-
-                          {/* Organizer Delete Deliverable Button */}
-                          <button
-                            type="button"
-                            onClick={() => onDeleteTask(t.task_id)}
-                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition"
-                            title="Delete Commitment (Organizer Admin)"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-600">
-                        <div>
-                          <span className="text-slate-400 font-medium">Owner:</span>{' '}
-                          <strong className="text-indigo-700">{t.assignee}</strong> ({t.assignee_email})
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-medium">Target:</span>{' '}
-                          <span className="text-slate-700 font-semibold">{t.deadline || 'Next Sprint'}</span>
-                        </div>
-                      </div>
-
-                      <blockquote className="bg-white border-l-2 border-indigo-500 p-2.5 rounded text-[11px] text-slate-700 font-mono shadow-2xs">
-                        "{t.evidence}"
-                      </blockquote>
-
-                      {/* DECLINE REASON CALLOUT (If declined) */}
-                      {t.status === 'DECLINED' && t.rejection_reason && (
-                        <div className="bg-rose-50 border border-rose-200 rounded-lg p-2.5 text-[11px] text-rose-900 space-y-1">
-                          <div className="flex items-center gap-1.5 font-bold text-rose-800">
-                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                            <span>Declined by Assignee with Reason:</span>
-                          </div>
-                          <p className="italic pl-5">"{t.rejection_reason}"</p>
-                          {t.declined_at && (
-                            <p className="text-[10px] text-rose-600 font-mono pl-5">Declined on {t.declined_at}</p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* UPLOADED PROOF & ORGANIZER VERIFICATION ACTION ROW */}
-                      {t.completion_file && (
-                        <div className={`p-3 rounded-xl border text-[11px] space-y-2 ${
-                          t.status === 'VERIFIED'
-                            ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950'
-                            : t.status === 'PENDING_ORGANIZER_VERIFICATION'
-                            ? 'bg-amber-50 border-amber-300 text-amber-950'
-                            : 'bg-slate-100 border-slate-200 text-slate-800'
-                        }`}>
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              <FileCheck className={`w-4 h-4 shrink-0 ${t.status === 'VERIFIED' ? 'text-emerald-600' : 'text-amber-600'}`} />
-                              <div className="truncate">
-                                <span className="font-bold">{t.completion_file.name}</span>{' '}
-                                <span className="font-mono text-[10px] opacity-75">({t.completion_file.size || 'Attached'})</span>
-                                {t.completion_file.note && (
-                                  <p className="text-[10px] truncate italic opacity-90 mt-0.5">Note: {t.completion_file.note}</p>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => onViewProof(t)}
-                                className="text-[10px] font-bold bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 px-2.5 py-1 rounded-lg transition"
-                              >
-                                View Doc
-                              </button>
-
-                              {/* Organizers can review & verify proof */}
-                              {t.status === 'PENDING_ORGANIZER_VERIFICATION' && (
-                                <button
-                                  type="button"
-                                  onClick={() => onOpenVerification(t)}
-                                  className="text-[10px] font-bold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg transition shadow-2xs flex items-center gap-1"
-                                >
-                                  <Stamp className="w-3 h-3" />
-                                  <span>Review & Verify</span>
-                                </button>
+                    return (
+                      <div
+                        key={m.id}
+                        className={`group flex items-center justify-between p-3 rounded-xl border text-xs transition-all ${
+                          isSelected
+                            ? 'bg-indigo-50/70 border-indigo-300 shadow-2xs text-indigo-950 font-medium'
+                            : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setActiveMeetingId(m.id)}
+                          className="flex-grow text-left pr-2 flex items-start gap-2.5 overflow-hidden"
+                        >
+                          <FileText className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`} />
+                          <div className="truncate">
+                            <div className="font-bold truncate text-slate-900">{m.title}</div>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
+                              <span>{m.fileName || 'transcript.txt'}</span>
+                              <span>•</span>
+                              <span>{m.date}</span>
+                              {fileTaskCount > 0 && (
+                                <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded font-sans font-bold">
+                                  {fileTaskCount} deliverables
+                                </span>
                               )}
                             </div>
                           </div>
+                        </button>
 
-                          {t.status === 'VERIFIED' && t.verified_by && (
-                            <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-medium pt-1 border-t border-emerald-200">
-                              <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Verified by <strong>{t.verified_by}</strong> on {t.verified_at || 'Recent'}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                    </div>
-                  ))}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteFile(m);
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition shrink-0"
+                          title="Delete Saved File from Ledger"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
           </div>
-        ) : (
-          <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center text-slate-400 text-xs shadow-xs">
-            <HardDrive className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-            <h3 className="text-sm font-bold text-slate-700 mb-1">No Saved Transcript Selected</h3>
-            <p>Upload a file or choose one from the left panel.</p>
-          </div>
-        )}
-      </div>
 
-      {/* Column 3: ORGANIZER EMPLOYEE CREDENTIAL MANAGEMENT (3 Cols) */}
-      <div className="lg:col-span-3 space-y-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+          {/* Column 2: Active File & AI Commitments Ledger (8 Cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            {activeMeeting ? (
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-5">
+                
+                {/* Header for Active File */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-indigo-600" /> {activeMeeting.title}
+                      </h3>
+                      <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full font-bold">
+                        {activeMeeting.status || 'Active'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1 font-mono">
+                      File: {activeMeeting.fileName} • {activeMeeting.date} • {activeMeeting.size || "1.5 KB"}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleRunAiExtraction}
+                      disabled={analyzing}
+                      className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5"
+                    >
+                      {analyzing ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Extracting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Run AI Extraction</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => onDeleteFile(activeMeeting)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition"
+                      title="Delete this file"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Verbatim Transcript View */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      Verbatim Transcript Text
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {activeMeeting.transcript.split(/\s+/).length} words
+                    </span>
+                  </div>
+                  <textarea
+                    readOnly
+                    value={activeMeeting.transcript}
+                    className="w-full h-28 p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-800 leading-relaxed focus:outline-none"
+                  />
+                </div>
+
+                {/* Extracted Commitment Deliverables */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-600" /> Extracted Deliverables ({visibleTasks.length})
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('delegation')}
+                      className="text-indigo-600 hover:underline font-bold text-xs flex items-center gap-1"
+                    >
+                      <span>Open Delegation Console</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {visibleTasks.length === 0 ? (
+                    <div className="border border-dashed border-slate-200 rounded-xl p-8 text-center text-slate-400 text-xs">
+                      <Sparkles className="w-6 h-6 mx-auto mb-2 text-indigo-400" />
+                      <p className="font-semibold text-slate-600">No deliverables extracted yet.</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Click "Run AI Extraction" to automatically detect commitments.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                      {visibleTasks.map((t) => (
+                        <div key={t.task_id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs shadow-2xs space-y-2.5">
+                          <div className="flex justify-between items-start gap-3">
+                            <div className="font-bold text-slate-900 text-sm">{t.title}</div>
+                            
+                            <div className="flex items-center gap-2 shrink-0">
+                              {t.status === 'VERIFIED' && (
+                                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                                  <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified
+                                </span>
+                              )}
+                              {t.status === 'PENDING_ORGANIZER_VERIFICATION' && (
+                                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase animate-pulse-subtle">
+                                  <Stamp className="w-3.5 h-3.5 text-amber-700" /> Needs Verification
+                                </span>
+                              )}
+                              {t.status === 'ACCEPTED' && (
+                                <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                                  <PlayCircle className="w-3.5 h-3.5 text-blue-600" /> In Progress
+                                </span>
+                              )}
+                              {t.status === 'DECLINED' && (
+                                <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-600" /> Declined
+                                </span>
+                              )}
+
+                              {/* Organizer Delegate Button */}
+                              <button
+                                type="button"
+                                onClick={() => onDelegateTask(t)}
+                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition text-[10px] font-bold flex items-center gap-1 shadow-2xs"
+                                title="Delegate / Re-assign Deliverable to another employee"
+                              >
+                                <UserCheck className="w-3 h-3" />
+                                <span>Delegate</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => onDeleteTask(t.task_id)}
+                                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition"
+                                title="Delete Commitment"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-600">
+                            <div>Owner: <strong className="text-indigo-700">{t.assignee}</strong> ({t.assignee_email})</div>
+                            <div>Target: <span className="text-slate-700 font-semibold">{t.deadline || 'Next Sprint'}</span></div>
+                          </div>
+
+                          <blockquote className="bg-white border-l-2 border-indigo-500 p-2.5 rounded text-[11px] text-slate-700 font-mono shadow-2xs">
+                            "{t.evidence}"
+                          </blockquote>
+
+                          {t.status === 'DECLINED' && t.rejection_reason && (
+                            <div className="bg-rose-50 border border-rose-200 rounded-lg p-2.5 text-[11px] text-rose-900 space-y-1">
+                              <div className="flex items-center gap-1.5 font-bold text-rose-800">
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                <span>Declined by Assignee with Reason:</span>
+                              </div>
+                              <p className="italic pl-5">"{t.rejection_reason}"</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center text-slate-400 text-xs shadow-xs">
+                <HardDrive className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                <h3 className="text-sm font-bold text-slate-700 mb-1">No Saved Transcript Selected</h3>
+                <p>Upload a file or choose one from the left panel.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: ORGANIZER EXCLUSIVE TASK DELEGATION & RE-ASSIGNMENT CONSOLE */}
+      {activeTab === 'delegation' && (
+        <div className="space-y-6 w-full">
           
-          {/* Header & Add Employee Button */}
-          <div className="flex justify-between items-center mb-3.5">
+          {/* Banner */}
+          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold uppercase">
+                  Organizer Privilege
+                </span>
+                <span className="text-xs text-slate-300 font-mono">• Centralized Task Allocation</span>
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight">Task Delegation & Re-assignment Console</h2>
+              <p className="text-xs text-indigo-200/80 max-w-2xl">
+                Only Organizers have authority to delegate or re-assign deliverables. Inspect employee declination reasons, re-assign workloads, and track complete delegation audit history.
+              </p>
+            </div>
+
+            {/* Summary Badges */}
+            <div className="flex flex-wrap gap-2.5 shrink-0">
+              <div className="bg-white/10 backdrop-blur-xs border border-white/10 rounded-2xl px-4 py-2.5 text-center">
+                <div className="text-xl font-extrabold text-white">{tasks.length}</div>
+                <div className="text-[10px] text-slate-300 uppercase font-bold">Total Tasks</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-xs border border-rose-500/40 rounded-2xl px-4 py-2.5 text-center">
+                <div className="text-xl font-extrabold text-rose-400">
+                  {tasks.filter(t => t.status === 'DECLINED').length}
+                </div>
+                <div className="text-[10px] text-rose-200 uppercase font-bold">Declined</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-xs border border-indigo-400/40 rounded-2xl px-4 py-2.5 text-center">
+                <div className="text-xl font-extrabold text-indigo-300">
+                  {tasks.filter(t => t.delegated_from).length}
+                </div>
+                <div className="text-[10px] text-indigo-200 uppercase font-bold">Delegated</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Delegation Filter Bar */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5 font-bold">
+              <button
+                onClick={() => setDelegationFilter('ALL')}
+                className={`px-3.5 py-2 rounded-xl transition ${
+                  delegationFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                All Tasks ({tasks.length})
+              </button>
+              <button
+                onClick={() => setDelegationFilter('DECLINED')}
+                className={`px-3.5 py-2 rounded-xl transition ${
+                  delegationFilter === 'DECLINED' ? 'bg-rose-600 text-white shadow-xs' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                }`}
+              >
+                🚨 Declined Needs Re-assignment ({tasks.filter(t => t.status === 'DECLINED').length})
+              </button>
+              <button
+                onClick={() => setDelegationFilter('DELEGATED')}
+                className={`px-3.5 py-2 rounded-xl transition ${
+                  delegationFilter === 'DELEGATED' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+                }`}
+              >
+                🔄 Re-assigned History ({tasks.filter(t => t.delegated_from).length})
+              </button>
+              <button
+                onClick={() => setDelegationFilter('PENDING')}
+                className={`px-3.5 py-2 rounded-xl transition ${
+                  delegationFilter === 'PENDING' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-amber-800 hover:bg-amber-100'
+                }`}
+              >
+                Pending Accept ({tasks.filter(t => !t.status || t.status.includes('PENDING')).length})
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-500 font-medium">
+              Showing filtered tasks for Organizer action
+            </div>
+          </div>
+
+          {/* Delegation Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {tasks
+              .filter(t => {
+                if (delegationFilter === 'DECLINED') return t.status === 'DECLINED';
+                if (delegationFilter === 'DELEGATED') return Boolean(t.delegated_from);
+                if (delegationFilter === 'PENDING') return !t.status || t.status.includes('PENDING');
+                return true;
+              })
+              .map(t => (
+                <div key={t.task_id} className={`bg-white border-2 rounded-2xl p-5 text-xs shadow-xs space-y-3 flex flex-col justify-between ${
+                  t.status === 'DECLINED' ? 'border-rose-300 bg-rose-50/10' : t.delegated_from ? 'border-indigo-300 bg-indigo-50/10' : 'border-slate-200'
+                }`}>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-mono font-bold text-slate-400">ID: {t.task_id.substring(0, 10)}</span>
+                      
+                      {t.status === 'DECLINED' && (
+                        <span className="bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                          Declined
+                        </span>
+                      )}
+                      {t.status === 'ACCEPTED' && (
+                        <span className="bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                          In Progress
+                        </span>
+                      )}
+                      {t.status === 'VERIFIED' && (
+                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                          Verified
+                        </span>
+                      )}
+                      {(!t.status || t.status.includes('PENDING')) && (
+                        <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                          Pending
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-extrabold text-slate-900 text-sm leading-snug">{t.title}</h3>
+
+                    <div className="flex items-center gap-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                      <div>Assignee: <strong className="text-indigo-700">{t.assignee}</strong></div>
+                      <span>•</span>
+                      <div>Target: <strong className="text-slate-800">{t.deadline || 'Next Release'}</strong></div>
+                    </div>
+
+                    <blockquote className="bg-slate-50 border-l-2 border-indigo-500 p-2 rounded text-[11px] text-slate-700 font-mono">
+                      "{t.evidence}"
+                    </blockquote>
+
+                    {/* DECLINED REASON CALLOUT */}
+                    {t.status === 'DECLINED' && t.rejection_reason && (
+                      <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-[11px] text-rose-900 space-y-1">
+                        <div className="font-bold flex items-center gap-1 text-rose-800">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span>Employee Declination Reason:</span>
+                        </div>
+                        <p className="italic pl-4">"{t.rejection_reason}"</p>
+                        {t.declined_at && (
+                          <p className="text-[10px] text-rose-600 font-mono pl-4">Declined on {t.declined_at}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* DELEGATION AUDIT TAG */}
+                    {t.delegated_from && (
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-2.5 text-[11px] text-indigo-900 space-y-0.5">
+                        <div className="font-bold flex items-center gap-1 text-indigo-800">
+                          <UserCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                          <span>Delegated from {t.delegated_from}</span>
+                        </div>
+                        <p className="text-[10px] text-indigo-700 font-mono">{t.delegation_note || `Reassigned to ${t.assignee}`}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ORGANIZER DELEGATE / RE-ASSIGN BUTTON */}
+                  <div className="pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => onDelegateTask(t)}
+                      className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      <span>Delegate / Re-assign Deliverable</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+        </div>
+      )}
+
+      {/* TAB 3: TEAM DIRECTORY & EMPLOYEE CREDENTIALS VIEW */}
+      {activeTab === 'employees' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5 w-full">
+          <div className="flex justify-between items-center border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-indigo-600" /> Employee Directory
+              <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <Users className="w-5 h-5 text-indigo-600" /> Employee Directory & Access Credentials
               </h2>
-              <p className="text-[11px] text-slate-500 mt-0.5">Manage logins & credentials</p>
+              <p className="text-xs text-slate-500 mt-0.5">Manage employee login credentials, secret passkeys, and account authority</p>
             </div>
             <button
               type="button"
               onClick={onOpenAddEmployee}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white p-1.5 rounded-xl shadow-2xs transition flex items-center gap-1 text-[11px] font-bold px-2.5"
-              title="Add New Employee Credentials"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Add</span>
+              <UserPlus className="w-4 h-4" />
+              <span>Add New Employee</span>
             </button>
           </div>
 
-          {/* Search bar */}
-          <div className="relative mb-3.5">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+          <div className="relative max-w-md">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <input
               type="text"
-              placeholder="Search employees..."
+              placeholder="Search employees by name, email, or role title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white"
             />
           </div>
 
-          {/* Employee Credentials List */}
-          {filteredEmployees.length === 0 ? (
-            <div className="p-6 text-center border border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
-              <UserCheck className="w-6 h-6 mx-auto mb-1.5 text-slate-300" />
-              <p>No employees found.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-              {filteredEmployees.map((emp) => (
-                <EmployeeCredentialCard 
-                  key={emp.email}
-                  employee={emp}
-                  onEdit={() => onOpenEditEmployee(emp)}
-                  onRegenerate={() => onRegeneratePassword(emp)}
-                  onDelete={() => onDeleteEmployee(emp)}
-                  onSwitch={() => onSwitchEmployee(emp)}
-                  showToast={showToast}
-                />
-              ))}
-            </div>
-          )}
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredEmployees.map((emp) => (
+              <EmployeeCredentialCard 
+                key={emp.email}
+                employee={emp}
+                onEdit={() => onOpenEditEmployee(emp)}
+                onRegenerate={() => onRegeneratePassword(emp)}
+                onDelete={() => onDeleteEmployee(emp)}
+                onSwitch={() => onSwitchEmployee(emp)}
+                showToast={showToast}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
     </main>
   );
@@ -2553,7 +2703,7 @@ function OrganizerVerificationModal({ task, onVerify, onClose }) {
 // ==========================================
 // DECLINE TASK MODAL (MANDATORY PROPER REASON)
 // ==========================================
-function DeclineTaskModal({ task, onConfirm, onDelegate, onCancel }) {
+function DeclineTaskModal({ task, onConfirm, onCancel }) {
   if (!task) return null;
   const [reason, setReason] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -2649,33 +2799,21 @@ function DeclineTaskModal({ task, onConfirm, onDelegate, onCancel }) {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-slate-100 font-bold">
-            {onDelegate && (
-              <button
-                type="button"
-                onClick={onDelegate}
-                className="px-3.5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs transition flex items-center gap-1.5"
-              >
-                <UserCheck className="w-4 h-4" />
-                <span>Deny & Delegate to Peer</span>
-              </button>
-            )}
-            <div className="flex gap-2.5 ml-auto">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition flex items-center gap-1.5"
-              >
-                <XCircle className="w-4 h-4" />
-                <span>Confirm & Record Decline</span>
-              </button>
-            </div>
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100 font-bold">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition flex items-center gap-1.5"
+            >
+              <XCircle className="w-4 h-4" />
+              <span>Confirm & Record Decline</span>
+            </button>
           </div>
         </form>
 
@@ -3396,7 +3534,6 @@ function EmployeeWorkspace({ currentUser, tasks, onTaskClick, onAcceptTask, onDe
               onCardClick={() => onTaskClick(t)}
               onAccept={() => onAcceptTask(t.task_id)}
               onDecline={() => onDeclineTask(t)}
-              onDelegate={() => onDelegateTask(t)}
               onUploadProof={() => onUploadProof(t)}
               onViewProof={() => onViewProof(t)}
             />
